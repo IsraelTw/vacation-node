@@ -99,6 +99,8 @@ const follower = sequelize.define('follower', {
 );
 console.log(follower === sequelize.models.follower); // true
 
+app.get('/', (req, res) => res.send('hello'));
+
 // rgister
 app.post('/signUp', async (req, res) => {
     const { first_name, last_name, user_name, password } = req.body;
