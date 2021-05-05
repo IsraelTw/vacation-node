@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 app.use(cors());
 app.use(express.json())
-const { Sequelize, DataTypes} = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 
 // conect to database
 const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
@@ -209,15 +209,15 @@ app.post('/addVacation', async (req, res) => {
 // edit vacation
 app.post('/editVacation', async (req, res) => {
     const { description, location, image, start_at, end_at, price, vacId } = req.body;
-    const re = await Vacation.update({ description, location , image , start_at , end_at, price }, { where: { vac_id: vacId.vac_id } })
+    const re = await Vacation.update({ description, location, image, start_at, end_at, price }, { where: { vac_id: vacId.vac_id } })
     res.send(re)
-}) 
+})
 
 //delete vacation (admin)
 app.post('/deleteVacation', async (req, res) => {
     await follower.destroy({
         where: { vacation: req.body.vacId }
-    }) 
+    })
     await Vacation.destroy({
         where: { vac_id: req.body.vacId }
     })
@@ -230,4 +230,4 @@ app.get('/vacationFollowed', async (req, res) => {
     res.send(vac);
 })
 
-app.listen(3001, console.log('app on port 3001'));  
+app.listen(process.env.PORT || 3001, console.log(`app on port ${process.env.PORT}`));
