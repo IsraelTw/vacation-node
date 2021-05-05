@@ -6,7 +6,7 @@ app.use(express.json())
 const { Sequelize, DataTypes } = require('sequelize');
 
 // conect to database
-const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
+const sequelize = new Sequelize('postgres://postgresql-sinuous-30280')
 
 // get users table
 const User = sequelize.define('user', {
