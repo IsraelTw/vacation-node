@@ -6,15 +6,18 @@ app.use(express.json())
 const { Sequelize, DataTypes } = require('sequelize');
 
 // conect to database
-const sequelize = new Sequelize('postgres://postgresql-sinuous-30280');
+const sequelize = new Sequelize('postgres', 'postgres', '1234', {
+    host: 'postgresql-sinuous-30280',
+    dialect:  'postgres'
+  });
 
 // get users table
 const User = sequelize.define('user', {
-    // user_id: {
-    //     type: DataTypes.INTEGER,
-    //     allowNull: false,
-    //     primaryKey: true
-    // },
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true
+    },
     first_name: {
         type: DataTypes.STRING,
         allowNull: false
@@ -99,9 +102,9 @@ const follower = sequelize.define('follower', {
 );
 console.log(follower === sequelize.models.follower); // true
 
-app.get('/', (req, res) => {
-    User.findAll()
-    res.send( User.findAll());
+app.get('/', async(req, res) => {
+    const x =await User.findAll()
+    res.send( x);
 });
 
 // rgister
