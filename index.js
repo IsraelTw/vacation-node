@@ -5,16 +5,22 @@ app.use(cors());
 app.use(express.json())
 const { Sequelize, DataTypes } = require('sequelize');
 
-// conect to database
-const sequelize = new Sequelize('postgres://postgresql-sinuous-30280');
+// conect to database'postgresql-sinuous-30280'
+try {
+     sequelize.authenticate();
+    console.log('Connection has been established successfully.');
+  } catch (error) { 
+    console.error('Unable  to connect to the database:', error);
+  }
+
 
 // get users table
 const User = sequelize.define('user', {
-    // user_id: {
-    //     type: DataTypes.INTEGER,
-    //     allowNull: false,
-    //     primaryKey: true
-    // },
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true 
+    },
     first_name: {
         type: DataTypes.STRING,
         allowNull: false
@@ -99,9 +105,11 @@ const follower = sequelize.define('follower', {
 );
 console.log(follower === sequelize.models.follower); // true
 
-app.get('/', async(req, res) => {
-    const x =await User.findAll()
-    res.send( x);
+app.get('/', async (req, res) => {
+    let x = await User.findAll()
+        .then(a => console.log('this is a  ',a))
+        .catch (err => console.log('this is error   ',err))
+        res.send('x');
 });
 
 // rgister
