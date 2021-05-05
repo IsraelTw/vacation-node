@@ -11,7 +11,7 @@ const sequelize = new Sequelize('postgres://postgresql-sinuous-30280')
 // get users table
 const User = sequelize.define('user', {
     user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.SERIAL,
         allowNull: false,
         primaryKey: true
     },
