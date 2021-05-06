@@ -10,16 +10,41 @@ app.get('/',(req,res)=>{
 
 const { Sequelize, DataTypes } = require('sequelize');
 // conect to database'postgresql-sinuous-30280'
-const sequelize = new Sequelize('bm629qa4f1hytiqxchmx', 'ux1pip9iptyclvjk', 'Bo1f4T2rjIMvN5qEKNKM', {
-    host: 'bm629qa4f1hytiqxchmx-mysql.services.clever-cloud.com',
-    dialect: 'mysql'
-  });
-try { 
-    sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-  } catch (error) { 
-    console.error('Unable  to connect to the database:', error);
+
+
+sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: {
+          require: true,
+          rejectUnauthorized: false
+      }
   }
+  });
+  async function fn() {
+    try {
+      await sequelize.authenticate();
+      console.log('Connection has been established successfully.');
+    } catch (error) {
+      console.error('Unable to connect to the database:', error);
+    }
+  }
+  
+  fn()
+  
+
+
+// const sequelize = new Sequelize('bm629qa4f1hytiqxchmx', 'ux1pip9iptyclvjk', 'Bo1f4T2rjIMvN5qEKNKM', {
+//     host: 'bm629qa4f1hytiqxchmx-mysql.services.clever-cloud.com',
+//     dialect: 'mysql'
+//   });
+// try { 
+//     sequelize.authenticate();
+//     console.log('Connection has been established successfully.');
+//   } catch (error) { 
+//     console.error('Unable  to connect to the database:', error);
+//   }
 // sequelize.query(`create table users(
 //     user_id int auto_increment primary key,
 //     first_name varchar(255) not null,
