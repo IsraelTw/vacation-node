@@ -169,7 +169,7 @@ app.post('/signUp', async (req, res) => {
 })
 
 // log in
-app.post('/LogIn', async (req, res) => {
+app.post('/login', async (req, res) => {
     const { user_name, password } = req.body;
     const signIn = await User.findAll({
         where: { user_name: user_name, password: password }
