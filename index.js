@@ -2,9 +2,9 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
 app.use(express.static('public'));
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"))
 })
 
@@ -16,23 +16,23 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',
     dialectOptions: {
-      ssl: {
-          require: true,
-          rejectUnauthorized: false
-      }
-  }
-  });
-  async function fn() {
-    try {
-      await sequelize.authenticate();
-      console.log('Connection has been established successfully.');
-    } catch (error) {
-      console.error('Unable to connect to the database:', error);
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
     }
-  }
-  
-  fn()
-  
+});
+async function fn() {
+    try {
+        await sequelize.authenticate();
+        console.log('Connection has been established successfully.');
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+}
+
+fn()
+
 
 
 // const sequelize = new Sequelize('bm629qa4f1hytiqxchmx', 'ux1pip9iptyclvjk', 'Bo1f4T2rjIMvN5qEKNKM', {
@@ -59,7 +59,7 @@ const User = sequelize.define('user', {
     user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        primaryKey: true 
+        primaryKey: true
     },
     first_name: {
         type: DataTypes.STRING,
@@ -145,11 +145,8 @@ const follower = sequelize.define('follower', {
 );
 console.log(follower === sequelize.models.follower); // true
 
-app.get('/home', async (req, res) => {
-    let x = await sequelize.query (`SELECT * FROM bm629qa4f1hytiqxchmx.users;`)
-        .then(a => console.log('this is a  ',a))
-        .catch (err => console.log('this is error   ',err))
-        res.send(x);
+app.get('/home', (req, res) => {
+    res.send('hello');
 });
 
 // rgister
@@ -172,7 +169,7 @@ app.post('/signUp', async (req, res) => {
 })
 
 // log in
-app.post('/logIn', async (req, res) => {
+app.post('/LogIn', async (req, res) => {
     const { user_name, password } = req.body;
     const signIn = await User.findAll({
         where: { user_name: user_name, password: password }
