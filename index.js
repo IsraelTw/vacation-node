@@ -171,13 +171,13 @@ app.post('/signUp', async (req, res) => {
 // log in
 app.post('/login', async (req, res) => {
     const { user_name, password } = req.body;
-    const signIn = await User.findAll({
-        where: { user_name: user_name, password: password }
-    });
-    if (signIn.length == 0) {
-        return res.send({ error: 'user name or password dosnet match' });
-    }
-    res.send(signIn);
+    // const signIn = await User.findAll({
+    //     where: { user_name: user_name, password: password }
+    // });
+    // if (signIn.length == 0) {
+    //     return res.send({ error: 'user name or password dosnet match' });
+    // }
+    res.send('signIn');
 });
 
 // //get users list
