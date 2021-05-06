@@ -9,8 +9,7 @@ app.get('/', (req, res) => {
 })
 
 const { Sequelize, DataTypes } = require('sequelize');
-// conect to database'postgresql-sinuous-30280'
-
+// conect to database postgresql
 
 sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
@@ -22,6 +21,12 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
         }
     }
 });
+
+// conect to database mysql
+
+// const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
+
+
 async function fn() {
     try {
         await sequelize.authenticate();
@@ -33,26 +38,6 @@ async function fn() {
 
 fn()
 
-
-
-// const sequelize = new Sequelize('bm629qa4f1hytiqxchmx', 'ux1pip9iptyclvjk', 'Bo1f4T2rjIMvN5qEKNKM', {
-//     host: 'bm629qa4f1hytiqxchmx-mysql.services.clever-cloud.com',
-//     dialect: 'mysql'
-//   });
-// try { 
-//     sequelize.authenticate();
-//     console.log('Connection has been established successfully.');
-//   } catch (error) { 
-//     console.error('Unable  to connect to the database:', error);
-//   }
-// sequelize.query(`create table users(
-//     user_id int auto_increment primary key,
-//     first_name varchar(255) not null,
-//      last_name varchar(255) not null,
-//      user_name varchar(255) not null,
-//      is_admin boolean not null default 0,
-//      password varchar(255) not null
-//     )`)
 
 // get users table
 const User = sequelize.define('user', {
@@ -131,7 +116,7 @@ const follower = sequelize.define('follower', {
         allowNull: false,
         primaryKey: true
     },
-    user: {
+    user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         foreignKey: true
@@ -180,11 +165,6 @@ app.post('/login', async (req, res) => {
     res.send(signIn);
 });
 
-// //get users list
-// app.get('/usersList', async (req, res) => {
-//     const usersArr = await User.findAll();
-//     res.send(usersArr);
-// })
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
@@ -198,18 +178,24 @@ app.get('/vaction/:id', async (req, res) => {
 
 //search vacation
 app.post('/searchVacation', async (req, res) => {
-    const vacList = await sequelize.query(
-        `SELECT vacation.vacation.* ,follower_id FROM vacation.vacation
-        left join vacation.followers
-        on (vac_id=vacation and vacation.followers.user = ${req.body.user}) 
-        where description like '%${req.body.search}%' 
-        ORDER BY follower_id DESC` );
-    res.send(vacList);
+    const db = sequelize.config.database
+    try {
+        const vacList = await sequelize.query(
+            `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
+            left join ${db}.followers
+            on (vac_id=vacation and ${db}.followers.user_id = ${req.body.user}) 
+            where description like '%${req.body.search}%' 
+            ORDER BY follower_id DESC` );
+        res.send(vacList);
+    }
+    catch (err) {
+        res.json('error ', err); 
+    }
 })
 
-async function isFollow(user, vacation) {
+async function isFollow(user_id, vacation) {
     const isfoloow = await follower.findAll({
-        where: { user, vacation }
+        where: { user_id, vacation }
     })
     if (isfoloow.length == 0) {
         return ('false');
@@ -222,12 +208,12 @@ app.post('/isFollow', async (req, res) => {
     const { user_id, vacation } = req.body;
     //add 
     if (await isFollow(user_id, vacation) === 'false') {
-        const folloe = await follower.create({ user_id, vacation }, { fields: ['user', 'vacation'] });
+        const folloe = await follower.create({ user_id, vacation }, { fields: ['user_id', 'vacation'] });
         await sequelize.query(`update vacation.vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
         return res.send("folloe");
     }
     //remove follower
-    else if (await isFollow(user, vacation) === 'true') {
+    else if (await isFollow(user_id, vacation) === 'true') {
         await follower.destroy({
             where: { user_id, vacation }
         })
