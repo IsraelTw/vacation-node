@@ -3,16 +3,31 @@ const app = express();
 const cors = require('cors');
 app.use(cors());
 app.use(express.json())
-const { Sequelize, DataTypes } = require('sequelize');
+app.use(express.static('public'));
+app.get('/',(req,res)=>{
+    res.sendFile(path.join(__dirname, "public", "index.html"))
+})
 
+const { Sequelize, DataTypes } = require('sequelize');
 // conect to database'postgresql-sinuous-30280'
-try {
-     sequelize.authenticate();
+const sequelize = new Sequelize('bm629qa4f1hytiqxchmx', 'ux1pip9iptyclvjk', 'Bo1f4T2rjIMvN5qEKNKM', {
+    host: 'bm629qa4f1hytiqxchmx-mysql.services.clever-cloud.com',
+    dialect: 'mysql'
+  });
+try { 
+    sequelize.authenticate();
     console.log('Connection has been established successfully.');
   } catch (error) { 
     console.error('Unable  to connect to the database:', error);
   }
-
+// sequelize.query(`create table users(
+//     user_id int auto_increment primary key,
+//     first_name varchar(255) not null,
+//      last_name varchar(255) not null,
+//      user_name varchar(255) not null,
+//      is_admin boolean not null default 0,
+//      password varchar(255) not null
+//     )`)
 
 // get users table
 const User = sequelize.define('user', {
@@ -105,11 +120,11 @@ const follower = sequelize.define('follower', {
 );
 console.log(follower === sequelize.models.follower); // true
 
-app.get('/', async (req, res) => {
-    let x = await User.findAll()
+app.get('/home', async (req, res) => {
+    let x = await sequelize.query (`SELECT * FROM bm629qa4f1hytiqxchmx.users;`)
         .then(a => console.log('this is a  ',a))
         .catch (err => console.log('this is error   ',err))
-        res.send('x');
+        res.send(x);
 });
 
 // rgister
