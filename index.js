@@ -191,7 +191,7 @@ app.get('/vaction/:id', async (req, res) => {
     const vacList = await sequelize.query(
         `SELECT vacation.vacation.* ,follower_id FROM vacation.vacation
         left join vacation.followers
-        on (vac_id=vacation and vacation.followers.user = ${req.params.id})
+        on (vac_id=vacation and vacation.followers.user_id = ${req.params.id})
         ORDER BY follower_id DESC`);
     res.send(vacList);
 });
@@ -219,17 +219,17 @@ async function isFollow(user, vacation) {
 
 // check if user follow some vacation and add or remove it
 app.post('/isFollow', async (req, res) => {
-    const { user, vacation } = req.body;
+    const { user_id, vacation } = req.body;
     //add 
-    if (await isFollow(user, vacation) === 'false') {
-        const folloe = await follower.create({ user, vacation }, { fields: ['user', 'vacation'] });
+    if (await isFollow(user_id, vacation) === 'false') {
+        const folloe = await follower.create({ user_id, vacation }, { fields: ['user', 'vacation'] });
         await sequelize.query(`update vacation.vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
         return res.send("folloe");
     }
     //remove follower
     else if (await isFollow(user, vacation) === 'true') {
         await follower.destroy({
-            where: { user, vacation }
+            where: { user_id, vacation }
         })
         await sequelize.query(`update vacation.vacation set followers_mount = followers_mount - 1  where vac_id = ${vacation};`)
 
