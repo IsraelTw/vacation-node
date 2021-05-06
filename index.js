@@ -177,7 +177,7 @@ app.post('/login', async (req, res) => {
     // if (signIn.length == 0) {
     //     return res.send({ error: 'user name or password dosnet match' });
     // }
-    res.send('signIn');
+    res.send(req.body);
 });
 
 // //get users list
