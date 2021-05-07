@@ -12,22 +12,22 @@ app.get('/', (req, res) => {
 const { Sequelize, DataTypes } = require('sequelize');
 // conect to database postgresql
 
-// sequelize = new Sequelize(process.env.DATABASE_URL, {
-//     dialect: 'postgres',
-//     protocol: 'postgres',
-//     dialectOptions: {
-//         ssl: {
-//             require: true,
-//             rejectUnauthorized: false
-//         }
-//     }
-// });
+sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    }
+});
 
 // conect to database mysql
 // const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
 
 // conect to database postgres loacl
-const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
+// const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
 
  function fn() {
     try {
