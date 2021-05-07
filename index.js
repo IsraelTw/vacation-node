@@ -181,7 +181,6 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-
     const vacList = await Vacation.findAll({
         where:{id:shopId}, 
         include:[
