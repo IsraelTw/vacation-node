@@ -186,7 +186,7 @@ app.get('/vaction/:id', async (req, res) => {
         left join ${db}.followers
         on (vac_id = vacation and ${db}.followers.user_id = ${req.params.id})
         ORDER BY follower_id DESC;`);
-    res.send(vacList);
+    res.send('vacList');
 });
 
 //search vacation
