@@ -38,6 +38,7 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
     }
 }
 fn()
+
 sequelize.sync({ alter: true });
 // get users table
 
@@ -141,6 +142,7 @@ const follower = sequelize.define('follower', {
 }, { timestamps: false }
 );
 console.log(follower === sequelize.models.follower); // true
+const db = sequelize.config.database
 
 app.get('/home', (req, res) => {
     res.send('hello');
@@ -179,17 +181,17 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
+
     const vacList = await sequelize.query(
-        `SELECT vacation.vacation.* ,follower_id FROM vacation.vacation
-        left join vacation.followers
-        on (vac_id=vacation and vacation.followers.user_id = ${req.params.id})
+        `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
+        left join ${db}.followers
+        on (vac_id = vacation and ${db}.followers.user_id = ${req.params.id})
         ORDER BY follower_id DESC;`);
     res.send(vacList);
 });
 
 //search vacation
 app.post('/searchVacation', async (req, res) => {
-    const db = sequelize.config.database
     try {
         const vacList = await sequelize.query(
             `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
@@ -220,7 +222,7 @@ app.post('/isFollow', async (req, res) => {
     //add 
     if (await isFollow(user_id, vacation) === 'false') {
         const folloe = await follower.create({ user_id, vacation }, { fields: ['user_id', 'vacation'] });
-        await sequelize.query(`update vacation.vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
+        await sequelize.query(`update ${db}.vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
         return res.send("folloe");
     }
     //remove follower
@@ -228,7 +230,7 @@ app.post('/isFollow', async (req, res) => {
         await follower.destroy({
             where: { user_id, vacation }
         })
-        await sequelize.query(`update vacation.vacation set followers_mount = followers_mount - 1  where vac_id = ${vacation};`)
+        await sequelize.query(`update ${db}.vacation set followers_mount = followers_mount - 1  where vac_id = ${vacation};`)
 
         res.send('dlete follow');
     }
