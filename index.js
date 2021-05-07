@@ -142,7 +142,7 @@ const follower = sequelize.define('follower', {
 }, { timestamps: false }
 );
 console.log(follower === sequelize.models.follower); // true
-const db = sequelize.config.database
+const db = process.env.DATABASE_URL;
 
 app.get('/home', (req, res) => {
     res.send('hello');
@@ -181,7 +181,6 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-
     const vacList = await sequelize.query(
         `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
         left join ${db}.followers
