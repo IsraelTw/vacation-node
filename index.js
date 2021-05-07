@@ -12,22 +12,22 @@ app.get('/', (req, res) => {
 const { Sequelize, DataTypes } = require('sequelize');
 // conect to database postgresql
 
-sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    protocol: 'postgres',
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false
-        }
-    }
-});
+// sequelize = new Sequelize(process.env.DATABASE_URL, {
+//     dialect: 'postgres',
+//     protocol: 'postgres',
+//     dialectOptions: {
+//         ssl: {
+//             require: true,
+//             rejectUnauthorized: false
+//         }
+//     }
+// });
 
 // conect to database mysql
 // const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
 
 // conect to database postgres loacl
-// const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
+const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
 
  function fn() {
     try {
@@ -181,28 +181,24 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-    const vacList = await Vacation.findAll({
-        where:{id:shopId}, 
-        include:[
-            { model:follower, as:'follower',
-            attributes: ['follower_id'], 
-              where:{ 
-                    vac_id:vacation, 
-                    user_id:req.params.id},   
-              required:false
-              }
-            ]
-         })
-         .success(function(result) {
-           callback(result);
+    const vacList = await Vacation.findAll(
+        // where:{id:shopId}, 
+        // include:[
+        //     { model:follower, as:'follower',
+        //     attributes: ['follower_id'], 
+        //       where:{ 
+        //             vac_id:vacation, 
+        //             user_id:req.params.id},   
+        //       required:false
+        //       }
+        //     ]
+         )
+        //  .success(function(result) {
+        //    callback(result);
+        res.send(vacList)
        });
-    // const vacList = await sequelize.query(
-    //     `SELECT ${db}.vacation.* , ${db}.follower.follower_id FROM ${db}.vacation
-    //     left join ${db}.followers
-    //     on (${db}.vacation.vac_id = ${db}.follower.vacation and ${db}.followers.user_id = ${req.params.id})
-    //     ORDER BY ${db}.follower.follower_id DESC;`);
-    res.send(vacList);
-});
+      
+
 
 //search vacation
 app.post('/searchVacation', async (req, res) => {
