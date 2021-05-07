@@ -182,11 +182,11 @@ app.post('/login', async (req, res) => {
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
     const vacList = await sequelize.query(
-        `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
+        `SELECT ${db}.vacation.* , ${db}.follower.follower_id FROM ${db}.vacation
         left join ${db}.followers
-        on (vac_id = vacation and ${db}.followers.user_id = ${req.params.id})
-        ORDER BY follower_id DESC;`);
-    res.send('vacList');
+        on (${db}.vacation.vac_id = ${db}.follower.vacation and ${db}.followers.user_id = ${req.params.id})
+        ORDER BY ${db}.follower.follower_id DESC;`);
+    res.send(vacList);
 });
 
 //search vacation
