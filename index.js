@@ -181,11 +181,27 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-    const vacList = await sequelize.query(
-        `SELECT ${db}.vacation.* , ${db}.follower.follower_id FROM ${db}.vacation
-        left join ${db}.followers
-        on (${db}.vacation.vac_id = ${db}.follower.vacation and ${db}.followers.user_id = ${req.params.id})
-        ORDER BY ${db}.follower.follower_id DESC;`);
+
+    const vacList = await Vacation.findAll({
+        where:{id:shopId}, 
+        include:[
+            { model:follower, as:'follower',
+            attributes: ['follower_id'], 
+              where:{ 
+                    vac_id:vacation, 
+                    user_id:req.params.id},   
+              required:false
+              }
+            ]
+         })
+         .success(function(result) {
+           callback(result);
+       });
+    // const vacList = await sequelize.query(
+    //     `SELECT ${db}.vacation.* , ${db}.follower.follower_id FROM ${db}.vacation
+    //     left join ${db}.followers
+    //     on (${db}.vacation.vac_id = ${db}.follower.vacation and ${db}.followers.user_id = ${req.params.id})
+    //     ORDER BY ${db}.follower.follower_id DESC;`);
     res.send(vacList);
 });
 
