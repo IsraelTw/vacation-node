@@ -4,6 +4,7 @@ const cors = require('cors');
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"))
 })
@@ -23,26 +24,28 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
 });
 
 // conect to database mysql
-
 // const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
 
+// conect to database postgres loacl
+// const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
 
-async function fn() {
+ function fn() {
     try {
-        await sequelize.authenticate();
+         sequelize.authenticate();
         console.log('Connection has been established successfully.');
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
 }
-
 fn()
-
-
+sequelize.sync({ alter: true });
 // get users table
+
+
 const User = sequelize.define('user', {
     user_id: {
         type: DataTypes.INTEGER,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
@@ -60,6 +63,7 @@ const User = sequelize.define('user', {
     },
     is_admin: {
         type: DataTypes.BOOLEAN,
+        defaultValue: false,
         allowNull: false
     },
     password: {
@@ -74,6 +78,7 @@ console.log(User === sequelize.models.user); // true
 const Vacation = sequelize.define('vacation', {
     vac_id: {
         type: DataTypes.INTEGER,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
@@ -113,18 +118,25 @@ console.log(Vacation === sequelize.models.vacation); // true
 const follower = sequelize.define('follower', {
     follower_id: {
         type: DataTypes.INTEGER,
+        autoIncrement: true,
         allowNull: false,
         primaryKey: true
     },
     user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        foreignKey: true
+        references: {
+            model: 'users',
+            key: 'user_id'
+        }
     },
     vacation: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        foreignKey: true
+        references: {
+            model: 'vacation',
+            key: 'vac_id'
+        }
     },
 }, { timestamps: false }
 );
@@ -138,7 +150,6 @@ app.get('/home', (req, res) => {
 app.post('/signUp', async (req, res) => {
     const { first_name, last_name, user_name, password } = req.body;
     const db = await User.findAll()
-
     db.map(user => {
         if (user.user_name === user_name) {
             return res.send('user name exzist');
@@ -172,7 +183,7 @@ app.get('/vaction/:id', async (req, res) => {
         `SELECT vacation.vacation.* ,follower_id FROM vacation.vacation
         left join vacation.followers
         on (vac_id=vacation and vacation.followers.user_id = ${req.params.id})
-        ORDER BY follower_id DESC`);
+        ORDER BY follower_id DESC;`);
     res.send(vacList);
 });
 
@@ -185,11 +196,11 @@ app.post('/searchVacation', async (req, res) => {
             left join ${db}.followers
             on (vac_id=vacation and ${db}.followers.user_id = ${req.body.user}) 
             where description like '%${req.body.search}%' 
-            ORDER BY follower_id DESC` );
+            ORDER BY follower_id DESC;` );
         res.send(vacList);
     }
     catch (err) {
-        res.json('error ', err); 
+        res.json('error ', err);
     }
 })
 
@@ -262,7 +273,7 @@ app.post('/deleteVacation', async (req, res) => {
 
 // get vacationFollowed
 app.get('/vacationFollowed', async (req, res) => {
-    const vac = await sequelize.query('SELECT * FROM vacation.vacation where followers_mount > 0;');
+    const vac = await sequelize.query(`SELECT * FROM ${sequelize.config.database}.vacation where followers_mount > 0;`);
     res.send(vac);
 })
 
