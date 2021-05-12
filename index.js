@@ -27,11 +27,11 @@ sequelize = new Sequelize(process.env.DATABASE_URL, {
 // const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
 
 // conect to database postgres loacl
-// const sequelize = new Sequelize('vacation', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
+// const sequelize = new Sequelize('vacations', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
 
- function fn() {
+function fn() {
     try {
-         sequelize.authenticate();
+        sequelize.authenticate();
         console.log('Connection has been established successfully.');
     } catch (error) {
         console.error('Unable to connect to the database:', error);
@@ -96,11 +96,11 @@ const Vacation = sequelize.define('vacation', {
         allowNull: false
     },
     start_at: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false
     },
     end_at: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false
     },
     price: {
@@ -109,13 +109,14 @@ const Vacation = sequelize.define('vacation', {
     },
     followers_mount: {
         type: DataTypes.INTEGER,
+        defaultValue: 0,
         allowNull: true
     },
 }, { timestamps: false, tableName: 'vacation' }
 );
 console.log(Vacation === sequelize.models.vacation); // true
 
-// get followers table
+// get followers table 
 const follower = sequelize.define('follower', {
     follower_id: {
         type: DataTypes.INTEGER,
@@ -142,7 +143,10 @@ const follower = sequelize.define('follower', {
 }, { timestamps: false }
 );
 console.log(follower === sequelize.models.follower); // true
-const db = process.env.DATABASE_URL;
+
+//...............................................................................
+const db = sequelize.config.database;
+console.log('db is ', db)
 
 app.get('/home', (req, res) => {
     res.send('hello');
@@ -152,18 +156,23 @@ app.get('/home', (req, res) => {
 app.post('/signUp', async (req, res) => {
     const { first_name, last_name, user_name, password } = req.body;
     const db = await User.findAll()
+    let resp = "";
     db.map(user => {
         if (user.user_name === user_name) {
-            return res.send('user name exzist');
+            return resp = 'user name allready exzist';
         }
     });
-    // return res.send('llllll')
-    const addUser = await User.create({
-        first_name, last_name, user_name, password
-    },
-        { fields: ['first_name', 'last_name', 'user_name', 'password'] }
-    );
-    res.send("addUser");
+    if (resp !== "") {
+        return res.json(resp);
+
+    } else {
+        const addUser = await User.create({
+            first_name, last_name, user_name, password
+        },
+            { fields: ['first_name', 'last_name', 'user_name', 'password'] }
+        );
+        res.send(addUser);
+    }
 })
 
 // log in
@@ -172,7 +181,7 @@ app.post('/login', async (req, res) => {
     const signIn = await User.findAll({
         where: { user_name: user_name, password: password }
     });
-    if (signIn.length == 0) {
+    if (signIn.length == 0 || user_name == '' || password == '') {
         return res.send({ error: 'user name or password dosnet match' });
     }
     res.send(signIn);
@@ -181,32 +190,33 @@ app.post('/login', async (req, res) => {
 
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-    const vacList = await Vacation.findAll(
-        // where:{id:shopId}, 
-        // include:[
-        //     { model:follower, as:'follower',
-        //     attributes: ['follower_id'], 
-        //       where:{ 
-        //             vac_id:vacation, 
-        //             user_id:req.params.id},   
-        //       required:false
-        //       }
-        //     ]
-         )
-        //  .success(function(result) {
-        //    callback(result);
-        res.send(vacList)
-       });
-      
+    // const vacList = await Vacation.findAll()
+    // const vacList = await sequelize.query(
+    //     `
+    //     SELECT ${db}.vacation.* , ${db}.followers.follower_id FROM ${db}.vacation
+    //     left join ${db}.followers
+    //     on ${db}.vacation.vac_id = ${db}.followers.vacation and ${db}.followers.user_id = ${req.params.id}
+    //     ORDER BY ${db}.followers.follower_id DESC;
+    //     `);
+    const vacList = await sequelize.query(
+        `
+            SELECT * , followers.follower_id FROM vacation
+            left join followers
+            on vacation.vac_id = followers.vacation and followers.user_id = ${req.params.id}
+            ORDER BY followers.follower_id DESC;
+            `);
+    res.send(vacList);
+});
+
 
 
 //search vacation
 app.post('/searchVacation', async (req, res) => {
     try {
         const vacList = await sequelize.query(
-            `SELECT ${db}.vacation.* ,follower_id FROM ${db}.vacation
-            left join ${db}.followers
-            on (vac_id=vacation and ${db}.followers.user_id = ${req.body.user}) 
+            `SELECT vacation.* ,follower_id FROM vacation
+            left join followers
+            on (vac_id=vacation and followers.user_id = ${req.body.user}) 
             where description like '%${req.body.search}%' 
             ORDER BY follower_id DESC;` );
         res.send(vacList);
@@ -229,10 +239,14 @@ async function isFollow(user_id, vacation) {
 // check if user follow some vacation and add or remove it
 app.post('/isFollow', async (req, res) => {
     const { user_id, vacation } = req.body;
+
     //add 
     if (await isFollow(user_id, vacation) === 'false') {
-        const folloe = await follower.create({ user_id, vacation }, { fields: ['user_id', 'vacation'] });
-        await sequelize.query(`update ${db}.vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
+        await follower.create({ user_id, vacation });
+        // const mount = await Vacation.findAll({ where: { vac_id: vacation } });
+        // console.log(mount)
+        // await Vacation.update({ followers_mount: + 1 }, { where: { vac_id: vacation } });
+        await sequelize.query(`update vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
         return res.send("folloe");
     }
     //remove follower
@@ -240,7 +254,7 @@ app.post('/isFollow', async (req, res) => {
         await follower.destroy({
             where: { user_id, vacation }
         })
-        await sequelize.query(`update ${db}.vacation set followers_mount = followers_mount - 1  where vac_id = ${vacation};`)
+        await sequelize.query(`update vacation set followers_mount = followers_mount - 1  where vac_id = ${vacation};`)
 
         res.send('dlete follow');
     }
@@ -285,7 +299,7 @@ app.post('/deleteVacation', async (req, res) => {
 
 // get vacationFollowed
 app.get('/vacationFollowed', async (req, res) => {
-    const vac = await sequelize.query(`SELECT * FROM ${sequelize.config.database}.vacation where followers_mount > 0;`);
+    const vac = await sequelize.query(`SELECT * FROM vacation where followers_mount > 0;`);
     res.send(vac);
 })
 
