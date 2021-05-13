@@ -147,11 +147,6 @@ console.log(follower === sequelize.models.follower); // true
 
 //...............................................................................
 const db = sequelize.config.database;
-console.log('db is ', db)
-
-app.get('/home', (req, res) => {
-    res.send('hello');
-});
 
 // rgister
 app.post('/signUp', async (req, res) => {
@@ -160,7 +155,7 @@ app.post('/signUp', async (req, res) => {
     let resp = "";
     db.map(user => {
         if (user.user_name === user_name) {
-            return resp = 'user name allready exzist';
+            return resp = 'user name already exist';
         }
     });
     if (resp !== "") {
@@ -194,7 +189,7 @@ app.get('/vaction/:id', async (req, res) => {
         ` SELECT * , followers.follower_id FROM vacation
             left join followers
             on vacation.vac_id = followers.vacation and followers.user_id = ${req.params.id}
-            ORDER BY followers.follower_id DESC;
+            ORDER BY followers.follower_id;
             `);
     res.send(vacList);
 });
@@ -217,7 +212,7 @@ app.post('/searchVacation', async (req, res) => {
             left join followers
             on (vac_id=vacation and followers.user_id = ${user}) 
             where description like '${descipFilter}' or ('${dateDefault}'  between start_at and end_at)
-            ORDER BY follower_id DESC;`
+            ORDER BY follower_id;`
         );
         res.send(vacList);
     }
