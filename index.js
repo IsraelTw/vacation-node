@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
 })
 
 const { Sequelize, DataTypes } = require('sequelize');
-// conect to database postgresql
+// conect to database postgresql heroku
 
 sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
@@ -188,20 +188,10 @@ app.post('/login', async (req, res) => {
     res.send(signIn);
 });
 
-
 // get vacation list 
 app.get('/vaction/:id', async (req, res) => {
-    // const vacList = await Vacation.findAll()
-    // const vacList = await sequelize.query(
-    //     `
-    //     SELECT ${db}.vacation.* , ${db}.followers.follower_id FROM ${db}.vacation
-    //     left join ${db}.followers
-    //     on ${db}.vacation.vac_id = ${db}.followers.vacation and ${db}.followers.user_id = ${req.params.id}
-    //     ORDER BY ${db}.followers.follower_id DESC;
-    //     `);
     const vacList = await sequelize.query(
-        `
-            SELECT * , followers.follower_id FROM vacation
+        ` SELECT * , followers.follower_id FROM vacation
             left join followers
             on vacation.vac_id = followers.vacation and followers.user_id = ${req.params.id}
             ORDER BY followers.follower_id DESC;
@@ -209,17 +199,26 @@ app.get('/vaction/:id', async (req, res) => {
     res.send(vacList);
 });
 
-
-
 //search vacation
 app.post('/searchVacation', async (req, res) => {
+
+    const { user, search, date } = req.body;
+    let descipFilter = "";
+    let dateDefault = date;
+    if (search !== "") {
+        descipFilter = "%" + search + "%";
+    }
+    if (dateDefault === '') {
+        dateDefault = '2020-05-03'
+    }
     try {
         const vacList = await sequelize.query(
             `SELECT vacation.* ,follower_id FROM vacation
             left join followers
-            on (vac_id=vacation and followers.user_id = ${req.body.user}) 
-            where description like '%${req.body.search}%' 
-            ORDER BY follower_id DESC;` );
+            on (vac_id=vacation and followers.user_id = ${user}) 
+            where description like '${descipFilter}' or ('${dateDefault}'  between start_at and end_at)
+            ORDER BY follower_id DESC;`
+        );
         res.send(vacList);
     }
     catch (err) {
@@ -227,6 +226,7 @@ app.post('/searchVacation', async (req, res) => {
     }
 })
 
+//function to check if user is follow
 async function isFollow(user_id, vacation) {
     const isfoloow = await follower.findAll({
         where: { user_id, vacation }
@@ -244,9 +244,6 @@ app.post('/isFollow', async (req, res) => {
     //add 
     if (await isFollow(user_id, vacation) === 'false') {
         await follower.create({ user_id, vacation });
-        // const mount = await Vacation.findAll({ where: { vac_id: vacation } });
-        // console.log(mount)
-        // await Vacation.update({ followers_mount: + 1 }, { where: { vac_id: vacation } });
         await sequelize.query(`update vacation set followers_mount = followers_mount + 1  where vac_id = ${vacation};`)
         return res.send("folloe");
     }
@@ -282,8 +279,8 @@ app.post('/addVacation', async (req, res) => {
 
 // edit vacation
 app.post('/editVacation', async (req, res) => {
-    const { description, location, image, start_at, end_at, price, vacId } = req.body;
-    const re = await Vacation.update({ description, location, image, start_at, end_at, price }, { where: { vac_id: vacId.vac_id } })
+    const { description, location, image, start_at, end_at, price, vac_id } = req.body;
+    const re = await Vacation.update({ description, location, image, start_at, end_at, price }, { where: { vac_id } })
     res.send(re)
 })
 
