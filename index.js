@@ -6,28 +6,36 @@ app.use(express.json());
 app.use(express.static('public'));
 const path = require('path');
 
-app.get('/', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"))
 })
+
+
+    // app.get('/*', function (req, res) {
+    //    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    //  });
+
+
 
 const { Sequelize, DataTypes } = require('sequelize');
 // conect to database postgresql heroku
 
-sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    protocol: 'postgres',
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false
-        }
-    }
-});
+// sequelize = new Sequelize(process.env.DATABASE_URL, {
+//     dialect: 'postgres',
+//     protocol: 'postgres',
+//     dialectOptions: {
+//         ssl: {
+//             require: true,
+//             rejectUnauthorized: false
+//         }
+//     }
+// });
 
 // conect to database mysql
-// const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
+const sequelize = new Sequelize('vacation', 'root', '', { host: 'localhost', dialect: 'mysql' });
 
 // conect to database postgres loacl
+
 // const sequelize = new Sequelize('vacations', 'postgres', '', { host: 'localhost', dialect: 'postgres' });
 
 function fn() {
@@ -146,7 +154,7 @@ const follower = sequelize.define('follower', {
 console.log(follower === sequelize.models.follower); // true
 
 //...............................................................................
-const db = sequelize.config.database;
+// const db = sequelize.config.database;
 
 // rgister
 app.post('/signUp', async (req, res) => {
@@ -280,7 +288,7 @@ app.post('/editVacation', async (req, res) => {
 })
 
 //delete vacation (admin)
-app.post('/deleteVacation', async (req, res) => {
+app.delete('/deleteVacation', async (req, res) => {
     await follower.destroy({
         where: { vacation: req.body.vacId }
     })
